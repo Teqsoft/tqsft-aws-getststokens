@@ -1,0 +1,73 @@
+name: Go Multi-platform Build & Signed Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build, Checksum, Sign & Release
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.1'
+
+      - name: Build binary
+        run: |
+          mkdir -p dist
+          FILENAME=tqsft-aws-gettokens-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/$FILENAME main.go
+
+      - name: Upload built binaries as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: dist/*
+
+  finalize:
+    name: Finalize release
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries
+          path: dist
+
+      # - name: Generate checksums
+      #   run: |
+      #     cd dist
+      #     sha256sum * > checksums.txt
+
+      # - name: Import GPG key
+      #   run: |
+      #     echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.asc
+      #     gpg --batch --import private.asc
+
+      # - name: Sign checksums
+      #   run: |
+      #     cd dist
+      #     gpg --yes --batch --armor --output checksums.txt.sig --sign checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          files: |
+            dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
