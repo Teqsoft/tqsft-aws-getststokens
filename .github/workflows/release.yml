@@ -48,6 +48,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist 
+      - name: List binary files
+        run: ls -R dist
 
       # - name: Generate checksums
       #   run: |
@@ -69,6 +71,6 @@ jobs:
         with:
           name: Release ${{ github.ref_name }}
           files: |
-            dist/*
+            dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
