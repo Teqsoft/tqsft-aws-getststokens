@@ -27,7 +27,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p dist
-          FILENAME=tqsft-aws-gettokens-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          FILENAME=tqsft-aws-getststokens-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/$FILENAME main.go
 
       - name: Upload built binaries as artifacts
@@ -47,8 +47,7 @@ jobs:
       - name: Download all binaries
         uses: actions/download-artifact@v4
         with:
-          path: dist
-        env: 
+          path: dist 
 
       # - name: Generate checksums
       #   run: |
